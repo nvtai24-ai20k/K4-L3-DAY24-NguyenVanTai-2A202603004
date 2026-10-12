@@ -16,7 +16,7 @@
 | Principal | Tool được phép | Purpose | Kết quả trong lab |
 |---|---|---|---|
 | `support_l1` | `search_docs` | `summarize-tickets`, `support-reply` | Tóm tắt ticket được; mọi `read_customer` bị deny (`reports/ledger.jsonl:25-45`) |
-| `dpo` | `search_docs`, `read_customer` | `summarize-tickets`, `support-reply`, `privacy-audit` | Đọc được 21 hồ sơ gắn với ticket tìm thấy (`reports/ledger.jsonl:2-22`) |
+| `dpo` | `search_docs`, `read_customer`, `erase_customer` (bonus) | `summarize-tickets`, `support-reply`, `privacy-audit` | Đọc được 21 hồ sơ gắn với ticket tìm thấy (`reports/ledger.jsonl:2-22`). `erase_customer` chỉ dùng cho delete cascade, purpose `privacy-audit` (`reports/bonus/erasure.log`) |
 | `billing` | `search_docs`, `read_customer` | `summarize-tickets`, `billing-reconciliation` | Không dùng `support-reply`, nên `read_customer` của Run B sẽ bị deny vì sai purpose |
 
 Purpose theo run: Run A = `summarize-tickets`, Run B và bước egress = `support-reply`. Không principal nào có `http_post`.

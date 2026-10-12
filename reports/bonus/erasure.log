@@ -1,0 +1,40 @@
+# Chạy trên BẢN COPY data/customers.json + corpus/ trong thư mục tạm; dữ liệu repo không đổi.
+$ python -m agent.erasure KH-000999 --as support_l1 ...
+{
+  "erased": false,
+  "reason": "deny erase_customer: ngoài quyền hiệu lực — principal support_l1 không có quyền erase_customer"
+}
+ledger verify: True
+
+$ python -m agent.erasure KH-000999 --as dpo ...
+{
+  "erased": true,
+  "reason": "allow erase_customer: trong quyền hiệu lực của dpo cho purpose 'privacy-audit', classification=restricted, egress=False, hết hạn 2026-10-12T05:19:00+00:00",
+  "deleted_tickets": [
+    "ticket-901.md",
+    "ticket-902.md",
+    "ticket-903.md",
+    "ticket-904.md",
+    "ticket-904b.md"
+  ],
+  "redacted_tickets": [],
+  "remaining_customers": 25
+}
+ledger verify: True
+
+còn sót định danh của KH-000999 trong bản copy:
+  (không còn)
+
+ledger cascade:
+support_l1 erase_customer                  deny  deny erase_customer: ngoài quyền hiệu lực — principal support_l1 không có quyền erase_customer
+dpo        erase_customer                  allow allow erase_customer: trong quyền hiệu lực của dpo cho purpose 'privacy-audit', classification=restricted, egress=False, hết hạn 2026-10-12T05:19:00+00:00
+dpo        erase_customer:delete_tickets   allow allow cascade: xoá 5 ticket gắn với khách qua related_tickets
+dpo        erase_customer:redact_mentions  allow allow cascade: thay định danh của khách bằng [ĐÃ XOÁ] trong 0 ticket khác
+dpo        erase_customer:delete_record    allow allow cascade: xoá record khỏi customers.json (26 -> 25)
+
+$ python -m pytest tests/test_bonus_erasure.py -v
+tests/test_bonus_erasure.py::test_dpo_erasure_cascades_and_ledger_still_verifies PASSED [ 25%]
+tests/test_bonus_erasure.py::test_support_l1_cannot_erase PASSED         [ 50%]
+tests/test_bonus_erasure.py::test_unknown_customer_is_logged_not_erased PASSED [ 75%]
+tests/test_bonus_erasure.py::test_purging_ledger_lines_instead_breaks_the_chain PASSED [100%]
+============================== 4 passed in 3.71s ==============================

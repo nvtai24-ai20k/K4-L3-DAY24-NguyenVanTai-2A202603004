@@ -1,5 +1,5 @@
 {
   "support_l1": {"role": "support_l1", "allowed_tools": ["search_docs"], "purposes": ["summarize-tickets", "support-reply"]},
   "billing": {"role": "billing", "allowed_tools": ["search_docs", "read_customer"], "purposes": ["summarize-tickets", "billing-reconciliation"]},
-  "dpo": {"role": "dpo", "allowed_tools": ["search_docs", "read_customer"], "purposes": ["summarize-tickets", "support-reply", "privacy-audit"]}
+  "dpo": {"role": "dpo", "allowed_tools": ["search_docs", "read_customer", "erase_customer"], "purposes": ["summarize-tickets", "support-reply", "privacy-audit"]}
 }
