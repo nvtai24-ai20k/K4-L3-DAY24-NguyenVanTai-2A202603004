@@ -1,0 +1,8 @@
+repos:
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.30.1
+    hooks:
+      # Dùng binary gitleaks v8.30.1 cài sẵn trong PATH, không build Go.
+      - id: gitleaks-system
+        args: ["--config", ".gitleaks.toml"]
+        pass_filenames: false

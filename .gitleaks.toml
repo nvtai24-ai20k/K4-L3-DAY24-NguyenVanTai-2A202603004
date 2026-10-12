@@ -8,3 +8,9 @@ id = "lab24-synthetic-token"
 description = "A deliberately invalid lab token; never use real credentials"
 regex = '''LAB24_FAKE_TOKEN=LAB24-DEMO-[A-Z0-9]{16}'''
 keywords = ["LAB24_FAKE_TOKEN"]
+
+# Virtualenv cục bộ (đã .gitignore) chứa code bên thứ ba, không thuộc repo;
+# chỉ bỏ qua đúng thư mục này khi chạy `gitleaks dir .`.
+[[allowlists]]
+description = "local virtualenv, not tracked by git"
+paths = ['''(^|[\/])\.venv[\/]''']
