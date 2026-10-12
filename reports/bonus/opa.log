@@ -1,0 +1,30 @@
+$ opa version
+Version: 1.20.2
+Build Commit: b2c26708e9d55645d7f837db495031f7e4152594-dirty
+Build Timestamp: 2026-09-03T20:35:14Z
+Build Hostname: 
+Go Version: go1.27.1
+Platform: windows/amd64
+Rego Version: v1
+WebAssembly: available
+
+binary: opa_windows_amd64.exe v1.20.2, sha256 e2f2e2b735ab98f316171ca47a6b352288cdeb5a616e31aa16335b8934748453 (khớp file .sha256 của release)
+
+$ opa test bonus/opa principals:data/principals.json -v
+data.lab24.pep_test.test_missing_input_is_default_deny: PASS (2.5944ms)
+data.lab24.pep_test.test_restricted_egress_denied_even_for_dpo: PASS (2.5944ms)
+data.lab24.pep_test.test_wrong_purpose_denied: PASS (3.1092ms)
+data.lab24.pep_test.test_dpo_can_read_for_valid_purpose: PASS (3.1092ms)
+data.lab24.pep_test.test_support_l1_cannot_read_customer: PASS (4.1348ms)
+data.lab24.pep_test.test_delegation_cannot_expand_parent_scope: PASS (4.1348ms)
+data.lab24.pep_test.test_expired_unknown_and_malformed_are_denied: PASS (5.4922ms)
+--------------------------------------------------------------------------------
+PASS: 7/7
+
+$ python -m pytest tests/test_bonus_opa.py -v
+tests/test_bonus_opa.py::test_opa_unit_tests_pass PASSED                 [ 20%]
+tests/test_bonus_opa.py::test_opa_matches_python_policy_on_grid PASSED   [ 40%]
+tests/test_bonus_opa.py::test_opa_fails_closed_without_binary PASSED     [ 60%]
+tests/test_bonus_opa.py::test_runner_with_opa_engine_blocks_exfil[support_l1] PASSED [ 80%]
+tests/test_bonus_opa.py::test_runner_with_opa_engine_blocks_exfil[dpo] PASSED [100%]
+============================== 5 passed in 5.61s ==============================
