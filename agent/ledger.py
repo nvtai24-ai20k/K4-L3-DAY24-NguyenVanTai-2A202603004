@@ -37,12 +37,57 @@ rồi gọi verify() phải trả về False.
 """
 from __future__ import annotations
 
+import hashlib
+import json
 from pathlib import Path
+
+GENESIS_HASH = "0" * 64
+REQUIRED_FIELDS = (
+    "ts", "agent_id", "run_id", "tool", "args_hash", "classification", "decision", "reason",
+)
+
+
+def _digest(record: dict) -> str:
+    body = {k: v for k, v in record.items() if k != "hash"}
+    return hashlib.sha256(json.dumps(body, sort_keys=True).encode("utf-8")).hexdigest()
+
+
+def _read_records(path: Path) -> list[dict]:
+    if not path.exists():
+        return []
+    lines = path.read_text(encoding="utf-8").splitlines()
+    return [json.loads(line) for line in lines if line.strip()]
 
 
 def append(entry: dict, path: Path) -> dict:
-    raise NotImplementedError("BƯỚC 3d: implement ledger append")
+    missing = [name for name in REQUIRED_FIELDS if name not in entry]
+    if missing:
+        raise ValueError(f"ledger entry thiếu field: {', '.join(missing)}")
+
+    records = _read_records(path)
+    record = {k: v for k, v in entry.items() if k not in ("prev_hash", "hash")}
+    record["prev_hash"] = records[-1]["hash"] if records else GENESIS_HASH
+    record["hash"] = _digest(record)
+
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("a", encoding="utf-8") as f:
+        f.write(json.dumps(record, ensure_ascii=False) + "\n")
+    return record
 
 
 def verify(path: Path) -> bool:
-    raise NotImplementedError("BƯỚC 3d: implement ledger verify")
+    try:
+        records = _read_records(path)
+    except (OSError, json.JSONDecodeError):
+        return False
+
+    prev_hash = GENESIS_HASH
+    for record in records:
+        if not isinstance(record, dict) or not str(record.get("reason", "")).strip():
+            return False
+        if record.get("prev_hash") != prev_hash:
+            return False
+        if record.get("hash") != _digest(record):
+            return False
+        prev_hash = record["hash"]
+    return True
