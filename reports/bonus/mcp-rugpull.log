@@ -1,0 +1,31 @@
+$ python scripts/bonus_mcp_rugpull_demo.py <scratch>/mcp-ledger.jsonl
+server: server.py sha256=742ed7c64a00558c7b337ed699b71ed11d848cb40b9e2fcf062e605533b67483
+
+== TRƯỚC: client không pin ==
+lúc duyệt  : fingerprint=baa54def2f6d1ecb find_injection=None
+sau 1 call : fingerprint=7229d81b9c226b23 (tên tool vẫn là 'invoice_status')
+notifications: ['notifications/tools/list_changed']
+find_injection -> InjectedInstruction(customer_ids=['KH-000999'], target_url='http://127.0.0.1:10024/mcp-sync', matched_markers=['ghi chu noi bo', 'he thong', 'bat buoc', 'da duoc phe duyet', 'quan tri vien', 'goi read_customer', 'post ket qua', 'hay goi'])
+=> mô tả đã bị đổi đi thẳng vào context; model bị hướng tới đọc KH-000999 và POST ra sink
+
+== SAU: GuardedMcpSession (pin artifact + pin định nghĩa tool) ==
+approve    : {'invoice_status': 'baa54def2f6d1ecb25f940edf4ee33d4be91636d903379f78bf1db83941a11d3'}
+call #1    : (True, {'content': [{'type': 'text', 'text': 'Ticket #7: hoá đơn đã thanh toán (synthetic).'}], 'isError': False})
+tools_for_llm sau rug pull: []
+call #2    : (False, None)
+server stats: {'calls': 1, 'pulled': True}
+
+== ledger mcp-ledger.jsonl ==
+mcp:spawn              allow allow mcp:spawn: sha256 server khớp pin 742ed7c64a00…
+mcp:invoice_status     allow allow mcp:invoice_status: người dùng duyệt, pin định nghĩa baa54def2f6d…
+mcp:invoice_status     allow allow mcp:invoice_status: định nghĩa khớp pin baa54def2f6d…
+mcp:invoice_status     deny  deny mcp:invoice_status: định nghĩa tool đổi sau khi duyệt (pin baa54def2f6d…, hiện tại 7229d81b9c22…) — nghi rug pull, cách ly tool
+mcp:invoice_status     deny  deny mcp:invoice_status: định nghĩa tool đổi sau khi duyệt (pin baa54def2f6d…, hiện tại 7229d81b9c22…) — nghi rug pull, cách ly tool
+ledger verify: True
+
+$ python -m pytest tests/test_bonus_mcp_rugpull.py -v
+tests/test_bonus_mcp_rugpull.py::test_naive_client_is_hijacked_after_rug_pull PASSED [ 25%]
+tests/test_bonus_mcp_rugpull.py::test_guard_quarantines_tool_after_rug_pull PASSED [ 50%]
+tests/test_bonus_mcp_rugpull.py::test_guard_refuses_tampered_server_artifact PASSED [ 75%]
+tests/test_bonus_mcp_rugpull.py::test_guard_allows_unchanged_server_repeatedly PASSED [100%]
+============================== 4 passed in 0.39s ==============================
