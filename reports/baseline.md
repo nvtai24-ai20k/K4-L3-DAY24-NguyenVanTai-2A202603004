@@ -1,5 +1,7 @@
-# Baseline — điền trong checkpoint 1
+# Baseline — checkpoint 1
 
-1. Agent có identity mỗi run chưa? Dẫn file/hàm:
-2. Ai cho phép `http_post`? Dẫn file/hàm:
-3. Nếu gửi sai PII ra sink, bằng chứng ở đâu? Dẫn file/hàm:
+Đọc `_naive_loop()` trong [agent/loop.py](../agent/loop.py) (dòng 27–54), đường chạy khi `agent/runner.py` còn là scaffold (`run_once`, dòng 69–74).
+
+1. **Agent có identity mỗi run chưa?** Chưa. `_naive_loop(message, llm)` (agent/loop.py:27) không nhận `principal_id`, `agent_id` hay `run_id`. `run_once` (agent/loop.py:57) chỉ truyền `principal_id` sang `runner.handle()` (dòng 69); khi rơi về baseline (dòng 74), tham số này bị bỏ. Mọi tool call chạy với quyền đầy đủ của process, không gắn với người dùng hay lần chạy nào.
+2. **Ai cho phép `http_post`?** Không có ai. `_naive_loop` gọi thẳng `tools.read_customer()` (agent/loop.py:39) rồi `tools.http_post()` (agent/loop.py:44) mỗi khi `llm.find_injection()` (dòng 34) thấy chỉ thị trong text của `search_docs` (dòng 31). Không có PEP và không có policy. Lớp chặn duy nhất là allowlist host/port cứng trong `tools.http_post` (agent/tools.py:26, 77). Lớp này chỉ giữ lab trong localhost, không phải security control: nó cho phép đúng đích của attacker (`127.0.0.1:10024`).
+3. **Nếu gửi sai PII ra sink, bằng chứng ở đâu?** Phía agent không có bằng chứng nào: baseline không ghi ledger hay audit log (không có lệnh ghi nào trong `_naive_loop`). Bằng chứng duy nhất nằm ở **phía người nhận**, trong `reports/sink.log` do `sink/sink.py:47` ghi. Ở checkpoint 2 file này được copy sang `reports/attack-before.log`, chứa record synthetic đầy đủ của `KH-000999` (cccd, phone, bank_account, email). Trong thực tế, sink thuộc về attacker nên tổ chức sẽ không có log này.
